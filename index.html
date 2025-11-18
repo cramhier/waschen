@@ -20,6 +20,7 @@
 
     #status {
       font-weight: bold;
+      font-size: 2rem;
       margin: 10px 0;
     }
 
@@ -48,12 +49,20 @@
       margin-top: 10px;
       color: #555;
     }
+
+    .green{
+        color: green;
+    }
+
+    .red{
+        color: red;
+    }
   </style>
 
 </head>
 <body>
     <h1>Waschmaschine</h1>
-    <p id="status"> Kein Status</p>
+    <p id="status"> Status lädt...</p>
     <div>
         <label>
             Stunden:
@@ -68,9 +77,11 @@
 
     <p id="timer">00:00:00</p>
     <p id="endsAt"></p>
+    
+    <img id="gato", src ="./Resources/cat-washingmachine.gif", alt = "Gato" style = "display: none; width: 200px; margint-top: 10px;">
 
-    <button id="startButton">Start</button>
-    <button id="resetButton">Reset</button>
+    <button id="startButton">Starten</button>
+    <button id="resetButton">Zurücksetzen</button>
 
     <script type="module">
         //Firabese Modulen Importieren
@@ -111,6 +122,7 @@
         const minutesInput = document.getElementById('minutes');
         const startButton = document.getElementById('startButton');
         const resetButton = document.getElementById('resetButton');
+        const gatoImg = document.getElementById('gato');
 
         let countdownInterval = null;
 
@@ -149,14 +161,26 @@
 
             if(!state || state.status !== "running" || !state.endTime){
                 statusEl.textContent = "FREI";
+                statusEl.classList.remove("red")
+                statusEl.classList.add("green")
                 timerEl.textContent = "00:00:00";
                 fertigUmEl.textContent = "";
                 setInputsDisabled(false);
+
+                if (gatoImg){
+                    gatoImg.style.display = "none";
+                }
+
                 return;
             }
-
             statusEl.textContent = "LÄUFT...";
+            statusEl.classList.remove("green")
+            statusEl.classList.add("red")
             fertigUmEl.textContent = formatEndTime(state.endTime);
+            
+            if (gatoImg){
+                gatoImg.style.display = "block";
+            }
             setInputsDisabled(true);
 
             function updateCountdown(){
