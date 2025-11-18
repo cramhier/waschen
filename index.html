@@ -1,11 +1,75 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Waschmaschine Timer</title>
+      <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 400px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    #status {
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    #timer {
+      font-size: 2rem;
+      margin: 10px 0;
+    }
+
+    label {
+      margin: 0 5px;
+    }
+
+    input {
+      width: 60px;
+      text-align: center;
+    }
+
+    button {
+      margin: 10px 5px;
+      padding: 5px 12px;
+      cursor: pointer;
+    }
+
+    small {
+      display: block;
+      margin-top: 10px;
+      color: #555;
+    }
+  </style>
+
 </head>
 <body>
-    this is a test
+    <h1>Waschmaschine</h1>
+    <p id="status"> Kein Status</p>
+    <div>
+        <label>
+            Stunden:
+            <input type="number" id="hours" min="0" max="6" value="1">
+        </label>
+
+        <label>
+            Minuten:
+            <input type="number" id="minutes" min="0" max="59" value="0">
+        </label>
+    </div>
+
+    <p id="timer">00:00:00</p>
+    <p id="fertigUm"></p>
+
+    <button id="startButton">Start</button>
+    <button id="resetButton">Reset</button>
 </body>
 </html>
