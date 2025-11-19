@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Müllabholtermine</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 450px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .day-card {
+      margin-bottom: 25px;
+      padding: 15px;
+      border-radius: 12px;
+      background: #f4f4f4;
+    }
+
+    .day-title {
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .day-date {
+      font-size: 0.95rem;
+      color: #555;
+      margin-bottom: 12px;
+    }
+
+    .circle-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .circle {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-align: center;
+      padding: 5px;
+    }
+
+    .circle.restmuell { background: #888888; }  /* grau */
+    .circle.bio       { background: #2e7d32; }  /* grün */
+    .circle.papier    { background: #1565c0; }  /* blau */
+    .circle.plastik   { background: #ffca28; color: #333; } /* gelb */
+    .circle.sperrmuell{ background: #6d4c41; }  /* braun */
+
+    .no-pickup {
+      font-size: 0.9rem;
+      color: #777;
+    }
+
+    a.back-link {
+      display: inline-block;
+      margin-top: 20px;
+      text-decoration: none;
+      color: #0066cc;
+    }
+  </style>
+</head>
+<body>
+  <h1>Müllabholtermine</h1>
+
+  <div class="day-card">
+    <div class="day-title" id="today-label">Heute</div>
+    <div class="day-date" id="today-date"></div>
+    <div id="today-circles" class="circle-row"></div>
+    <div id="today-none" class="no-pickup" style="display:none;">Heute wird nichts abgeholt.</div>
+  </div>
+
+  <div class="day-card">
+    <div class="day-title" id="tomorrow-label">Morgen</div>
+    <div class="day-date" id="tomorrow-date"></div>
+    <div id="tomorrow-circles" class="circle-row"></div>
+    <div id="tomorrow-none" class="no-pickup" style="display:none;">Morgen wird nichts abgeholt.</div>
+  </div>
+
+  <a href="../index.html" class="back-link">← Zurück zur Waschmaschine</a>
+
+  <script type="module">
+    // Firebase importieren
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      get
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyC7y6gXEsDfb2rFOcXI7BkuggUUwnCo7NU",
+        authDomain: "waschmaschinetimer.firebaseapp.com",
+        databaseURL: "https://waschmaschinetimer-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "waschmaschinetimer",
+        storageBucket: "waschmaschinetimer.firebasestorage.app",
+        messagingSenderId: "790363496912",
+        appId: "1:790363496912:web:dc3710ab16a72873c0d9d5",
+        measurementId: "G-MLSH2WYKLD"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const trashRef = ref(db, "trashDates");
+
+    const todayDateEl = document.getElementById("today-date");
+    const tomorrowDateEl = document.getElementById("tomorrow-date");
+    const todayCirclesEl = document.getElementById("today-circles");
+    const tomorrowCirclesEl = document.getElementById("tomorrow-circles");
+    const todayNoneEl = document.getElementById("today-none");
+    const tomorrowNoneEl = document.getElementById("tomorrow-none");
+
+    //Datum in DD-MM-YYYY
+    function formatKey(date) {
+        const d = String(date.getDate()).padStart(2, "0");
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const y = date.getFullYear();
+        return `${d}-${m}-${y}`;
+    }
+
+    //Datum Anzeigen
+    function formatDisplayDate(date) {
+      return date.toLocaleDateString("de-DE", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    const TYPE_CONFIG = {
+      restmuell: { label: "Restmüll",   class: "restmuell" },
+      bio:       { label: "Biotonne",   class: "bio" },
+      papier:    { label: "Papier",     class: "papier" },
+      plastik:   { label: "Plastik",    class: "plastik" },
+      sperrmuell:{ label: "Sperrmüll",  class: "sperrmuell" }
+    };
+
+    function renderDay(data, key, circlesEl, noneEl) {
+      circlesEl.innerHTML = "";
+      let any = false;
+
+      const entry = data[key];
+      if (entry) {
+        for (const typeKey of Object.keys(TYPE_CONFIG)) {
+          if (entry[typeKey]) {
+            any = true;
+            const cfg = TYPE_CONFIG[typeKey];
+            const div = document.createElement("div");
+            div.className = `circle ${cfg.class}`;
+            div.textContent = cfg.label;
+            circlesEl.appendChild(div);
+          }
+        }
+      }
+
+      if (!any) {
+        noneEl.style.display = "block";
+      } else {
+        noneEl.style.display = "none";
+      }
+    }
+
+    (async () => {
+        
+      // Heute & Morgen berechnen (nach Browser-Zeit)
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      todayDateEl.textContent = formatDisplayDate(today);
+      tomorrowDateEl.textContent = formatDisplayDate(tomorrow);
+
+      const todayKey = formatKey(today);
+      const tomorrowKey = formatKey(tomorrow);
+
+      try {
+        const snapshot = await get(trashRef);
+        const data = snapshot.val() || {};
+
+        renderDay(data, todayKey, todayCirclesEl, todayNoneEl);
+        renderDay(data, tomorrowKey, tomorrowCirclesEl, tomorrowNoneEl);
+      } catch (err) {
+        console.error("Fehler beim Laden der Mülltermine:", err);
+        todayNoneEl.textContent = "Fehler beim Laden.";
+        tomorrowNoneEl.textContent = "Fehler beim Laden.";
+        todayNoneEl.style.display = "block";
+        tomorrowNoneEl.style.display = "block";
+      }
+    })();
+  </script>
+</body>
+</html>
