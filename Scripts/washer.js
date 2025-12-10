@@ -1,0 +1,163 @@
+
+        //Firabese Modulen Importieren
+        import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import {
+            getDatabase,
+            ref,
+            set,
+            onValue,
+            get
+        } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+        //Firebase Konfiguration
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7y6gXEsDfb2rFOcXI7BkuggUUwnCo7NU",
+            authDomain: "waschmaschinetimer.firebaseapp.com",
+            databaseURL: "https://waschmaschinetimer-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "waschmaschinetimer",
+            storageBucket: "waschmaschinetimer.firebasestorage.app",
+            messagingSenderId: "790363496912",
+            appId: "1:790363496912:web:dc3710ab16a72873c0d9d5",
+            measurementId: "G-MLSH2WYKLD"
+        };
+
+        //Firebase Initialisieren
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        //Speciherort in der Database
+        const stateRef = ref(database, 'washerState');
+
+        //Elemente holen
+        const statusEl = document.getElementById('status');
+        const timerEl = document.getElementById('timer');
+        const fertigUmEl = document.getElementById('endsAt');
+        const hoursInput = document.getElementById('hours');
+        const minutesInput = document.getElementById('minutes');
+        const startButton = document.getElementById('startButton');
+        const resetButton = document.getElementById('resetButton');
+        const gatoImg = document.getElementById('gato');
+
+        let countdownInterval = null;
+
+        //Sekunden in HH:MM:SS umwandeln
+        function formatTime(totalSeconds) {
+            if (totalSeconds < 0) totalSeconds = 0;
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            const hh = String(hours).padStart(2, "0");
+            const mm = String(minutes).padStart(2, "0");
+            const ss = String(seconds).padStart(2, "0");
+            
+            return `${hh}:${mm}:${ss}`;
+        }
+
+        //Anzeige aktualisieren
+        function formatEndTime(timestamp) {
+            if (!timestamp) return "";
+            const d = new Date(timestamp);
+            const hh = String(d.getHours()).padStart(2, "0");
+            const mm = String(d.getMinutes()).padStart(2, "0");
+            return `Fertig um ca. ${hh}:${mm} Uhr`;
+        }
+        function setInputsDisabled(disabled) {
+            hoursInput.disabled = disabled;
+            minutesInput.disabled = disabled;
+            startButton.disabled = disabled;
+        }
+        function updateUIState(state){
+            if (countdownInterval){
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+
+            if(!state || state.status !== "running" || !state.endTime){
+                statusEl.textContent = "FREI";
+                statusEl.classList.remove("red")
+                statusEl.classList.add("green")
+                timerEl.textContent = "00:00:00";
+                fertigUmEl.textContent = "";
+                setInputsDisabled(false);
+
+                if (gatoImg){
+                    gatoImg.style.display = "none";
+                }
+
+                return;
+            }
+            statusEl.textContent = "LÄUFT...";
+            statusEl.classList.remove("green")
+            statusEl.classList.add("red")
+            fertigUmEl.textContent = formatEndTime(state.endTime);
+            
+            if (gatoImg){
+                gatoImg.style.display = "block";
+            }
+            setInputsDisabled(true);
+
+            function updateCountdown(){
+                const now = Date.now();
+                const remainingMs = state.endTime - now;
+                const remainingSec = Math.round (remainingMs / 1000);
+
+                timerEl.textContent = formatTime(remainingSec);
+
+                if (remainingSec <= 0){
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+                set(stateRef, {
+                    status: "free",
+                    endTime: null
+                });
+            }
+        }
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+        
+        onValue(stateRef, (snapshot) => {
+            const state = snapshot.val();
+            updateUIState(state);
+        });
+
+        startButton.addEventListener("click", async () => {
+            const hours = parseInt(hoursInput.value, 10) || 0;
+            const minutes = parseInt(minutesInput.value, 10) || 0;
+            const totalSeconds = hours * 3600 + minutes * 60;
+
+            if (totalSeconds <= 0) {
+                alert("Bitte geben Sie eine gültige Zeit ein.");
+                return;
+            }
+            const maxSeconds = 5 * 60 * 60;
+            if (totalSeconds > maxSeconds) {
+                alert("Die maximale Zeit beträgt 6 Stunden.");
+                return;
+            }
+            const endTime = Date.now() + totalSeconds * 1000;
+
+            await set(stateRef, {
+                status: 'running',
+                endTime
+            });
+        });
+
+        resetButton.addEventListener("click", async () => {
+            await set(stateRef, {
+                status: "free",
+                endTime: null
+            });
+        });
+
+        (async () => {
+            const snapshot = await get(stateRef);
+            if (!snapshot.exists()) {
+                await set(stateRef, {
+                    status: "free",
+                    endTime: null
+                });
+            }
+        })();

@@ -1,265 +1,56 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Waschmaschine Timer</title>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waschmaschine Timer</title>
-      <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      max-width: 400px;
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    h1 {
-      margin-bottom: 10px;
-    }
-
-    #status {
-      font-weight: bold;
-      font-size: 2rem;
-      margin: 10px 0;
-    }
-
-    #timer {
-      font-size: 2rem;
-      margin: 10px 0;
-    }
-
-    label {
-      margin: 0 5px;
-    }
-
-    input {
-      width: 60px;
-      text-align: center;
-    }
-
-    button {
-      margin: 10px 5px;
-      padding: 5px 12px;
-      cursor: pointer;
-    }
-
-    small {
-      display: block;
-      margin-top: 10px;
-      color: #555;
-    }
-
-    .green{
-        color: green;
-    }
-
-    .red{
-        color: red;
-    }
-    .link-section{
-        margin-top: 20px;
-    }
-  </style>
-
+  <!-- External stylesheet -->
+  <link rel="stylesheet" href="./styles/main.css" />
 </head>
 <body>
-    <h1>Waschmaschine</h1>
-    <p id="status"> Status lädt...</p>
-    <div>
+  <main class="app">
+    <div class="app-inner">
+      <h1>Waschmaschine</h1>
+      <p class="app-subtitle">Status &amp; Timer für die WG-Waschmaschine</p>
+
+      <p id="status" class="green">
+        <span class="status-dot"></span>
+        <span>Status lädt...</span>
+      </p>
+
+      <p id="timer">00:00:00</p>
+      <p id="endsAt"></p>
+
+      <div class="time-inputs">
         <label>
-            Stunden:
-            <input type="number" id="hours" min="0" max="6" value="0">
+          Stunden
+          <input type="number" id="hours" min="0" max="6" value="0" />
         </label>
-
         <label>
-            Minuten:
-            <input type="number" id="minutes" min="0" max="59" value="0">
+          Minuten
+          <input type="number" id="minutes" min="0" max="59" value="0" />
         </label>
-    </div>
+      </div>
 
-    <p id="timer">00:00:00</p>
-    <p id="endsAt"></p>
-    
-    <img 
-    id="gato"
-    src ="./Resources/cat-washingmachine.gif"
-    alt = "Gato"
-    style = "display: none; width: 200px; margin-top: 10px;"
-    >
+      <div class="buttons">
+        <button id="startButton">Starten</button>
+        <button id="resetButton">Zurücksetzen</button>
+      </div>
 
-    <button id="startButton">Starten</button>
-    <button id="resetButton">Zurücksetzen</button>
+      <img
+        id="gato"
+        src="./Resources/cat-washingmachine.gif"
+        alt="Gato in der Waschmaschine"
+      />
 
-    <script type="module">
-        //Firabese Modulen Importieren
-        import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import {
-            getDatabase,
-            ref,
-            set,
-            onValue,
-            get
-        } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
-
-        //Firebase Konfiguration
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyC7y6gXEsDfb2rFOcXI7BkuggUUwnCo7NU",
-            authDomain: "waschmaschinetimer.firebaseapp.com",
-            databaseURL: "https://waschmaschinetimer-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "waschmaschinetimer",
-            storageBucket: "waschmaschinetimer.firebasestorage.app",
-            messagingSenderId: "790363496912",
-            appId: "1:790363496912:web:dc3710ab16a72873c0d9d5",
-            measurementId: "G-MLSH2WYKLD"
-        };
-
-        //Firebase Initialisieren
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
-        //Speciherort in der Database
-        const stateRef = ref(database, 'washerState');
-
-        //Elemente holen
-        const statusEl = document.getElementById('status');
-        const timerEl = document.getElementById('timer');
-        const fertigUmEl = document.getElementById('endsAt');
-        const hoursInput = document.getElementById('hours');
-        const minutesInput = document.getElementById('minutes');
-        const startButton = document.getElementById('startButton');
-        const resetButton = document.getElementById('resetButton');
-        const gatoImg = document.getElementById('gato');
-
-        let countdownInterval = null;
-
-        //Sekunden in HH:MM:SS umwandeln
-        function formatTime(totalSeconds) {
-            if (totalSeconds < 0) totalSeconds = 0;
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            
-            const hh = String(hours).padStart(2, "0");
-            const mm = String(minutes).padStart(2, "0");
-            const ss = String(seconds).padStart(2, "0");
-            
-            return `${hh}:${mm}:${ss}`;
-        }
-
-        //Anzeige aktualisieren
-        function formatEndTime(timestamp) {
-            if (!timestamp) return "";
-            const d = new Date(timestamp);
-            const hh = String(d.getHours()).padStart(2, "0");
-            const mm = String(d.getMinutes()).padStart(2, "0");
-            return `Fertig um ca. ${hh}:${mm} Uhr`;
-        }
-        function setInputsDisabled(disabled) {
-            hoursInput.disabled = disabled;
-            minutesInput.disabled = disabled;
-            startButton.disabled = disabled;
-        }
-        function updateUIState(state){
-            if (countdownInterval){
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-
-            if(!state || state.status !== "running" || !state.endTime){
-                statusEl.textContent = "FREI";
-                statusEl.classList.remove("red")
-                statusEl.classList.add("green")
-                timerEl.textContent = "00:00:00";
-                fertigUmEl.textContent = "";
-                setInputsDisabled(false);
-
-                if (gatoImg){
-                    gatoImg.style.display = "none";
-                }
-
-                return;
-            }
-            statusEl.textContent = "LÄUFT...";
-            statusEl.classList.remove("green")
-            statusEl.classList.add("red")
-            fertigUmEl.textContent = formatEndTime(state.endTime);
-            
-            if (gatoImg){
-                gatoImg.style.display = "block";
-            }
-            setInputsDisabled(true);
-
-            function updateCountdown(){
-                const now = Date.now();
-                const remainingMs = state.endTime - now;
-                const remainingSec = Math.round (remainingMs / 1000);
-
-                timerEl.textContent = formatTime(remainingSec);
-
-                if (remainingSec <= 0){
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-                set(stateRef, {
-                    status: "free",
-                    endTime: null
-                });
-            }
-        }
-            updateCountdown();
-            countdownInterval = setInterval(updateCountdown, 1000);
-        }
-        
-        onValue(stateRef, (snapshot) => {
-            const state = snapshot.val();
-            updateUIState(state);
-        });
-
-        startButton.addEventListener("click", async () => {
-            const hours = parseInt(hoursInput.value, 10) || 0;
-            const minutes = parseInt(minutesInput.value, 10) || 0;
-            const totalSeconds = hours * 3600 + minutes * 60;
-
-            if (totalSeconds <= 0) {
-                alert("Bitte geben Sie eine gültige Zeit ein.");
-                return;
-            }
-            const maxSeconds = 5 * 60 * 60;
-            if (totalSeconds > maxSeconds) {
-                alert("Die maximale Zeit beträgt 6 Stunden.");
-                return;
-            }
-            const endTime = Date.now() + totalSeconds * 1000;
-
-            await set(stateRef, {
-                status: 'running',
-                endTime
-            });
-        });
-
-        resetButton.addEventListener("click", async () => {
-            await set(stateRef, {
-                status: "free",
-                endTime: null
-            });
-        });
-
-        (async () => {
-            const snapshot = await get(stateRef);
-            if (!snapshot.exists()) {
-                await set(stateRef, {
-                    status: "free",
-                    endTime: null
-                });
-            }
-        })();
-    </script>
-
-    <div class="link-section">
+      <div class="link-section">
         <a href="./Pages/muelltermine.html">Zu den Müllterminen</a>
+      </div>
     </div>
+  </main>
 
-
+  <!-- External JS (your existing script, moved) -->
+  <script type="module" src="./Scripts/washer.js"></script>
 </body>
 </html>
