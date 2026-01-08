@@ -8,18 +8,65 @@
 </head>
 <body>
   <div class="video-container">
-    <video autoplay controls>
-      <source src="../Resources/byecat.MP4" type="video/mp4">
-      Dein Browser unterstützt das Video-Tag nicht.
-    </video>
+    <div class="video-frame">
+      <video id="byecatVideo" controls autoplay playsinline data-src="https://res.cloudinary.com/dnvlgbc2l/video/upload/byecat_knrzvr.mp4">
+        Dein Browser unterstützt das Video nicht.
+      </video>
+      <div id="videoOverlay" class="video-overlay" aria-hidden="true">
+        <button id="unmuteBtn" class="unmute-btn">Play with sound</button>
+      </div>
+    </div>
   </div>
 
   <a href="../index.html" class="back-link">← Zurück</a>
 
   <script>
-    // Auto-play mit sound
-    const video = document.querySelector('video');
-    video.muted = false;
+    // Cloudinary loader fuer byecat video
+    const videoEl = document.getElementById('byecatVideo');
+    const overlay = document.getElementById('videoOverlay');
+    const unmuteBtn = document.getElementById('unmuteBtn');
+
+    (function init() {
+      const configured = videoEl.getAttribute('data-src') || '';
+      if (!configured) {
+        const info = document.createElement('div');
+        info.style.marginTop = '12px';
+        info.style.color = '#b00020';
+        info.textContent = 'Fehler: Video konnte nicht geladen werden.';
+        document.body.insertBefore(info, document.querySelector('.back-link'));
+        return;
+      }
+
+      videoEl.src = configured;
+
+
+      // Falls video gemutet wird, autoplay versuchen
+      videoEl.play().catch(() => {
+        console.log('Muted autoplay blocked; user must interact to play.');
+      });
+
+      // unmuten versuchen
+      async function tryUnmute() {
+        try {
+          videoEl.muted = false;
+          await videoEl.play();
+          overlay.style.display = 'none';
+        } catch (e) {
+          console.warn('Unable to autoplay with sound; user interaction required', e);
+          overlay.style.display = 'block';
+        }
+      }
+
+      videoEl.addEventListener('playing', () => {
+        if (videoEl.muted) overlay.style.display = 'block';
+        else overlay.style.display = 'none';
+      });
+
+      unmuteBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await tryUnmute();
+      });
+    })();
   </script>
 </body>
 </html>
