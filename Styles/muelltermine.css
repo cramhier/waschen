@@ -1,0 +1,112 @@
+/* Basic page setup */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Courier New', monospace;
+  padding: 20px;
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+  background: #fafaf8;
+  color: #1a1a1a;
+}
+
+h1 {
+  margin: 0 0 24px;
+  font-size: 1.5rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 900;
+}
+
+/* Day card container */
+.day-card {
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 0;
+  border: 3px solid #1a1a1a;
+  background: #f9f1dd;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.15);
+}
+
+.day-title {
+  font-weight: 900;
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.day-date {
+  font-size: 0.85rem;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  opacity: 0.75;
+  font-weight: 700;
+}
+
+/* logos row */
+.circle-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.circle {
+  width: 70px;
+  height: 70px;
+  border-radius: 0;
+  border: 3px solid #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-align: center;
+  padding: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.circle.restmuell { background: #757575; }  /* grau */
+.circle.bio       { background: #2e7d32; }  /* grün */
+.circle.papier    { background: #1976d2; }  /* blau */
+.circle.plastik   { background: #ffca28; color: #1a1a1a; } /* gelb */
+.circle.sperrmuell{ background: #d32f2f; }  /* rot */
+
+.no-pickup {
+  font-size: 0.9rem;
+  color: #1a1a1a;
+  opacity: 0.7;
+}
+
+/* Link */
+a.back-link {
+  display: inline-block;
+  margin-top: 20px;
+  text-decoration: none;
+  color: #1a1a1a;
+  border: 3px solid #1a1a1a;
+  padding: 10px 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  background: #ffffff;
+  transition: all 0.1s ease;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.15);
+}
+
+a.back-link:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.15);
+}
+
+a.back-link:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.15);
+}

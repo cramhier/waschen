@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ByeCat</title>
+  <link rel="stylesheet" href="../Styles/byecat.css">
+</head>
+<body>
+  <div class="video-container">
+    <video autoplay controls>
+      <source src="../Resources/byecat.MP4" type="video/mp4">
+      Dein Browser unterstützt das Video-Tag nicht.
+    </video>
+  </div>
+
+  <a href="../index.html" class="back-link">← Zurück</a>
+
+  <script>
+    // Auto-play mit sound
+    const video = document.querySelector('video');
+    video.muted = false;
+  </script>
+</body>
+</html>

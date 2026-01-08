@@ -1,0 +1,59 @@
+/* setup */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: 'Courier New', monospace;
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+/* Video card */
+.video-container {
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 30px;
+  border: 3px solid #1a1a1a;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.15);
+}
+
+video {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #000000;
+}
+
+/* link zurueck */
+.back-link {
+  display: inline-block;
+  text-decoration: none;
+  color: #1a1a1a;
+  border: 3px solid #1a1a1a;
+  padding: 12px 24px;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  background: #ffffff;
+  transition: all 0.1s ease;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.15);
+}
+
+.back-link:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.15);
+}
+
+.back-link:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.15);
+}
